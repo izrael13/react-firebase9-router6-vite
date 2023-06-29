@@ -1,42 +1,81 @@
 import { useContext, useState } from "react";
 import { UserContext } from "../context/UserProvider";
 import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
 
 const Register = () => {
-  const [email, setEmail] = useState("test@test.com");
-  const [password, setPassword] = useState("123123");
-const navigate = useNavigate()
-  const {registerUser} = useContext(UserContext)
+  const navigate = useNavigate();
+  const { registerUser } = useContext(UserContext);
 
-  const handleSubmit = async(e) => {
-    e.preventDefault();
-    console.log("procesando form: ", email, password);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    getValues,
+    setError
+  } = useForm();
+
+  const onSubmit = async({email, password}) =>{
     try {
-        await registerUser(email, password)
+        await registerUser(email, password);
         console.log("usuario creado");
-        navigate("/")
-    } catch (error) {
+        navigate("/");
+      } catch (error) {
         console.log(error.code);
-        alert("Email ya registrado")
-    }
-  };
+
+        switch(error.code){
+            case 'auth/email-already-in-use':
+                setError("email", {message:"Email ya esta en uso"})
+                break;
+            default:
+                console.log("error en el servidor: "+error.code);
+        }
+            
+      }
+  }
 
   return (
     <>
       <h1>Register</h1>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <input
           type="email"
           placeholder="Ingrese email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          {...register("email", {
+            required: { value: true, message: "Campo obligatorio" },
+            pattern: {
+              value:
+                /[a-z0-9]+(\.[_a-z0-9]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,15})/,
+              message: "Formato de email no valido",
+            },
+          })}
         />
+        {errors.email && <p>{errors.email.message}</p>}
         <input
           type="password"
           placeholder="Ingrese password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          {...register("password", {
+            minLength: { value: 6, message: "Minimo 6 carateres" },
+            validate: {
+              trim: (v) => {
+                if (!v.trim()) return "Escribe algo";
+                else true;
+              },
+            },
+          })}
         />
+        {errors.password && <p>{errors.password.message}</p>}
+        <input
+          type="password"
+          placeholder="Ingrese password 2"
+          {...register("repassword", {
+            validate: {
+              equals: (v) =>
+                v === getValues("password") || "No coinciden las contraseñas",
+            },
+          })}
+        />
+        {errors.repassword && <p>{errors.repassword.message}</p>}
         <button type="submit">Register</button>
       </form>
     </>
