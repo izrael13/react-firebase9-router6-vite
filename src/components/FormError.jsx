@@ -1,4 +1,4 @@
 const FormError = ({error}) => {
-  return <>{error && <p>{error.message}</p>}</>;
+  return <>{error && <p className="text-red-600">{error.message}</p>}</>;
 };
 export default FormError;

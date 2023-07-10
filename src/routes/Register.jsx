@@ -6,6 +6,8 @@ import { erroresFirebase } from "../utils/errorresFirebase";
 import FormError from "../components/FormError";
 import { formValidate } from "../utils/formaValidate";
 import FormInput from "../components/FormInput";
+import Title from "../components/Title";
+import ButtonForm from "../components/ButtonForm";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -27,17 +29,20 @@ const Register = () => {
       navigate("/");
     } catch (error) {
       console.log(error.code);
-      setError("firebase", {
-        message: erroresFirebase(error.code),
+      const { code, message } = erroresFirebase(error.code);
+      setError(code, {
+        message,
       });
     }
   };
 
   return (
     <>
-      <h1>Register</h1>
-      <FormError error={errors.firebase} />
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <Title text="Register" />
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="flex max-w-md flex-col gap-4"
+      >
         <FormInput
           type="email"
           placeholder="Ingrese email"
@@ -45,8 +50,10 @@ const Register = () => {
             required,
             pattern: patternEmail,
           })}
+          label="Ingresa tu correo"
+          error={errors.email}
         >
-            <FormError error={errors.email} />
+          <FormError error={errors.email} />
         </FormInput>
 
         <FormInput
@@ -56,6 +63,8 @@ const Register = () => {
             minLength,
             validate: validateTrim,
           })}
+          label="Ingrese password"
+          error={errors.password}
         ></FormInput>
         <FormError error={errors.password} />
 
@@ -65,10 +74,12 @@ const Register = () => {
           {...register("repassword", {
             validate: validateEquals(getValues("password")),
           })}
+          label="Ingrese password 2"
+          error={errors.repassword}
         ></FormInput>
         <FormError error={errors.repassword} />
 
-        <button type="submit">Register</button>
+        <ButtonForm type="submit" text="Register" />
       </form>
     </>
   );
